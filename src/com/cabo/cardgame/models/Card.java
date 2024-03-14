@@ -19,11 +19,10 @@ public class Card {
 
     @Override
     public String toString() {
-        return "Rank=" + rank + ",Suit=" + suit;
+        return "Rank_" + rank + "." + "Suit_" + suit;
     }
 
     public String getImagePath() {
-        System.out.print("/CardImages/" + this + ".png");
         return "/CardImages/" + this + ".png";
     }
 }

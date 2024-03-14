@@ -1,14 +1,21 @@
 package com.cabo.cardgame;
 
 import com.cabo.cardgame.models.Card;
+import com.cabo.cardgame.models.ComputerPlayer;
 import com.cabo.cardgame.models.Deck;
 import com.cabo.cardgame.models.Player;
+import com.cabo.cardgame.listeners.GameEventListener;
+
+import javafx.animation.PauseTransition;
+import javafx.application.Platform;
+import javafx.util.Duration;
 
 import java.util.Collections;
 import java.util.ArrayList;
 import java.util.List;
 
 public class Game {
+    private GameEventListener eventListener;
     private List<Player> players;
     private Deck deck;
     private int currentPlayerIndex = 0;
@@ -21,9 +28,10 @@ public class Game {
         gameState = true;
         trashPile = new ArrayList<>();
 
-        // Initialize 4 players
-        for (int i = 1; i <= 4; i++) {
-            players.add(new Player("Player " + i));
+        // Initialize players
+        players.add(new Player("Human")); // Human player
+        for (int i = 1; i <= 3; i++) {
+            players.add(new ComputerPlayer("Computer " + i)); // Computer players
         }
 
         // Example: Dealing cards to players
@@ -53,8 +61,29 @@ public class Game {
         return players;
     }
 
+    public void setGameEventListener(GameEventListener listener) {
+        this.eventListener = listener;
+    }
+
     public void nextTurn() {
         currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
+        // Logic to determine whose turn it is...
+        if (players.get(currentPlayerIndex).isHuman()) {
+            if (eventListener != null) {
+                eventListener.onHumanPlayerTurn();
+                System.out.print("playing:");
+                System.out.print(getCurrentPlayer().getName());
+
+            }
+        } else {
+            if (eventListener != null) {
+                eventListener.onComputerPlayerTurn();
+                System.out.print("playing:");
+                System.out.print(getCurrentPlayer().getName());
+                executeComputerTurn();
+            }
+            // Additional logic for handling computer turn...
+        }
     }
 
     public Player getCurrentPlayer() {
@@ -62,7 +91,7 @@ public class Game {
     }
 
     public boolean isGameOver() {
-        return gameState;
+        return !gameState;
     }
     // Methods to draw a card from the drawDeck and to add a card to the trashPile
     public Card drawCard() {
@@ -77,4 +106,21 @@ public class Game {
     public Card getTopCardOfTrashPile() {
         return trashPile.isEmpty() ? null : trashPile.get(trashPile.size() - 1);
     }
+
+    public boolean trashEmpty(){
+        return trashPile.isEmpty();
+    }
+
+    private void executeComputerTurn() {
+        PauseTransition pause = new PauseTransition(Duration.seconds(1));
+        pause.setOnFinished(event -> {
+            Card card = drawCard();
+            addToTrashPile(card);
+
+            nextTurn(); // Proceed to the next turn after a brief pause
+        });
+        pause.play();
+    }
+
 }
+
